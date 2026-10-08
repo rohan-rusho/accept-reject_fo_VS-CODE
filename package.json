@@ -1,0 +1,328 @@
+{
+  "name": "reviewflow",
+  "displayName": "ReviewFlow - Change Review & Acceptance",
+  "description": "Antigravity-style change review system for VS Code. Track, inspect, group, accept or reject code modifications with reversible history.",
+  "version": "0.1.0",
+  "publisher": "rohan-rusho",
+  "author": {
+    "name": "Md. Rohan Islam",
+    "email": "rusho.rohan@gmail.com",
+    "url": "https://github.com/rohan-rusho"
+  },
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Other"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/rohan-rusho/accept-reject_fo_VS-CODE.git"
+  },
+  "main": "./dist/extension.js",
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "reviewflow-sidebar",
+          "title": "ReviewFlow",
+          "icon": "resources/icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "reviewflow-sidebar": [
+        {
+          "type": "webview",
+          "id": "reviewflow.pendingChangesView",
+          "name": "Pending Changes"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "reviewflow.acceptChange",
+        "title": "ReviewFlow: Accept Change",
+        "icon": "$(check)"
+      },
+      {
+        "command": "reviewflow.rejectChange",
+        "title": "ReviewFlow: Reject Change",
+        "icon": "$(close)"
+      },
+      {
+        "command": "reviewflow.acceptFile",
+        "title": "ReviewFlow: Accept File",
+        "icon": "$(pass)"
+      },
+      {
+        "command": "reviewflow.rejectFile",
+        "title": "ReviewFlow: Reject File",
+        "icon": "$(discard)"
+      },
+      {
+        "command": "reviewflow.acceptAll",
+        "title": "ReviewFlow: Accept All Changes",
+        "icon": "$(check-all)"
+      },
+      {
+        "command": "reviewflow.rejectAll",
+        "title": "ReviewFlow: Reject All Changes",
+        "icon": "$(clear-all)"
+      },
+      {
+        "command": "reviewflow.undoLastChange",
+        "title": "ReviewFlow: Undo Last Change",
+        "icon": "$(discard)"
+      },
+      {
+        "command": "reviewflow.nextChange",
+        "title": "ReviewFlow: Next Change",
+        "icon": "$(arrow-down)"
+      },
+      {
+        "command": "reviewflow.prevChange",
+        "title": "ReviewFlow: Previous Change",
+        "icon": "$(arrow-up)"
+      },
+      {
+        "command": "reviewflow.previewDiff",
+        "title": "ReviewFlow: Preview Diff",
+        "icon": "$(diff)"
+      },
+      {
+        "command": "reviewflow.openInlineDiff",
+        "title": "ReviewFlow: Open Inline Diff (Unified View)",
+        "icon": "$(diff-single)"
+      },
+      {
+        "command": "reviewflow.openReviewPanel",
+        "title": "ReviewFlow: Open Review Panel"
+      },
+      {
+        "command": "reviewflow.clearHistory",
+        "title": "ReviewFlow: Clear Review History"
+      },
+      {
+        "command": "reviewflow.refresh",
+        "title": "ReviewFlow: Refresh",
+        "icon": "$(refresh)"
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "reviewflow.acceptAll",
+          "when": "view == reviewflow.pendingChangesView",
+          "group": "navigation@1"
+        },
+        {
+          "command": "reviewflow.rejectAll",
+          "when": "view == reviewflow.pendingChangesView",
+          "group": "navigation@2"
+        },
+        {
+          "command": "reviewflow.undoLastChange",
+          "when": "view == reviewflow.pendingChangesView",
+          "group": "navigation@3"
+        },
+        {
+          "command": "reviewflow.refresh",
+          "when": "view == reviewflow.pendingChangesView",
+          "group": "navigation@4"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "reviewflow.acceptFile",
+          "when": "view == reviewflow.pendingChangesView && viewItem == fileItem",
+          "group": "inline@1"
+        },
+        {
+          "command": "reviewflow.rejectFile",
+          "when": "view == reviewflow.pendingChangesView && viewItem == fileItem",
+          "group": "inline@2"
+        },
+        {
+          "command": "reviewflow.acceptChange",
+          "when": "view == reviewflow.pendingChangesView && viewItem == changeItem",
+          "group": "inline@1"
+        },
+        {
+          "command": "reviewflow.rejectChange",
+          "when": "view == reviewflow.pendingChangesView && viewItem == changeItem",
+          "group": "inline@2"
+        },
+        {
+          "command": "reviewflow.previewDiff",
+          "when": "view == reviewflow.pendingChangesView && (viewItem == changeItem || viewItem == fileItem)",
+          "group": "inline@3"
+        }
+      ],
+      "editor/title": [
+        {
+          "command": "reviewflow.acceptFile",
+          "when": "resourceScheme == reviewflow-baseline || isInDiffEditor",
+          "group": "navigation@1"
+        },
+        {
+          "command": "reviewflow.rejectFile",
+          "when": "resourceScheme == reviewflow-baseline || isInDiffEditor",
+          "group": "navigation@2"
+        },
+        {
+          "command": "reviewflow.acceptChange",
+          "when": "resourceScheme == reviewflow-baseline || isInDiffEditor",
+          "group": "navigation@3"
+        },
+        {
+          "command": "reviewflow.rejectChange",
+          "when": "resourceScheme == reviewflow-baseline || isInDiffEditor",
+          "group": "navigation@4"
+        }
+      ],
+      "commandPalette": [
+        { "command": "reviewflow.acceptChange" },
+        { "command": "reviewflow.rejectChange" },
+        { "command": "reviewflow.acceptFile" },
+        { "command": "reviewflow.rejectFile" },
+        { "command": "reviewflow.acceptAll" },
+        { "command": "reviewflow.rejectAll" },
+        { "command": "reviewflow.undoLastChange" },
+        { "command": "reviewflow.nextChange" },
+        { "command": "reviewflow.prevChange" },
+        { "command": "reviewflow.previewDiff" },
+        { "command": "reviewflow.openInlineDiff" },
+        { "command": "reviewflow.openReviewPanel" },
+        { "command": "reviewflow.clearHistory" },
+        { "command": "reviewflow.refresh" }
+      ]
+    },
+    "keybindings": [
+      {
+        "command": "reviewflow.acceptChange",
+        "key": "alt+enter",
+        "when": "editorTextFocus"
+      },
+      {
+        "command": "reviewflow.rejectChange",
+        "key": "shift+alt+backspace",
+        "when": "editorTextFocus"
+      },
+      {
+        "command": "reviewflow.openInlineDiff",
+        "key": "alt+d",
+        "when": "editorTextFocus"
+      },
+      {
+        "command": "reviewflow.acceptFile",
+        "key": "alt+shift+enter",
+        "when": "editorTextFocus"
+      },
+      {
+        "command": "reviewflow.rejectFile",
+        "key": "alt+shift+delete",
+        "when": "editorTextFocus"
+      },
+      {
+        "command": "reviewflow.acceptChange",
+        "key": "alt+shift+a",
+        "when": "editorTextFocus"
+      },
+      {
+        "command": "reviewflow.rejectChange",
+        "key": "alt+shift+r",
+        "when": "editorTextFocus"
+      },
+      {
+        "command": "reviewflow.nextChange",
+        "key": "alt+shift+]",
+        "when": "editorTextFocus"
+      },
+      {
+        "command": "reviewflow.prevChange",
+        "key": "alt+shift+[",
+        "when": "editorTextFocus"
+      },
+      {
+        "command": "reviewflow.undoLastChange",
+        "key": "alt+shift+z"
+      }
+    ],
+    "configuration": {
+      "title": "ReviewFlow",
+      "properties": {
+        "reviewflow.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable or disable ReviewFlow change tracking."
+        },
+        "reviewflow.autoShowInlineDiff": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically show the unified inline diff view (with deleted lines in red on top and added in green) whenever any file is modified, without requiring a click."
+        },
+        "reviewflow.debounceMs": {
+          "type": "number",
+          "default": 300,
+          "description": "Debounce duration in milliseconds for consolidating continuous modifications."
+        },
+        "reviewflow.groupingDistance": {
+          "type": "number",
+          "default": 0,
+          "description": "Maximum number of unchanged lines between edits to group them into a single change block. Set to 0 to only group strictly continuous/consecutive lines."
+        },
+        "reviewflow.persistPendingChanges": {
+          "type": "boolean",
+          "default": true,
+          "description": "Persist pending change baselines across VS Code restarts."
+        },
+        "reviewflow.showInlineActions": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show Accept / Reject CodeLens above change blocks."
+        },
+        "reviewflow.showSidebar": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show the ReviewFlow sidebar view container."
+        },
+        "reviewflow.showStatusBar": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show the ReviewFlow indicator in the status bar."
+        },
+        "reviewflow.showDecorations": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show visual line decorations (additions/deletions) for pending changes."
+        },
+        "reviewflow.preferInlineDiff": {
+          "type": "boolean",
+          "default": true,
+          "description": "Always open ReviewFlow diff preview in Unified Inline View (deleted lines red on top, added lines green on bottom)."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile",
+    "test": "mocha --require ./dist/test/unit/setup.js dist/test/unit/**/*.test.js",
+    "test:unit": "mocha --require ./dist/test/unit/setup.js dist/test/unit/**/*.test.js"
+  },
+  "devDependencies": {
+    "@types/mocha": "^10.0.6",
+    "@types/node": "^20.11.0",
+    "@types/vscode": "^1.85.0",
+    "@vscode/test-electron": "^2.3.9",
+    "mocha": "^10.4.0",
+    "typescript": "^5.4.5"
+  }
+}
