@@ -27,7 +27,7 @@ let manager: ChangeManager | undefined;
 export function activate(context: vscode.ExtensionContext) {
   console.log('ReviewFlow extension is activating...');
 
-  const history = new ChangeHistory(50);
+  const history = new ChangeHistory(50, context);
   tracker = new ChangeTracker(context);
   manager = new ChangeManager(tracker, history);
 

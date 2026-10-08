@@ -1,11 +1,27 @@
+import * as vscode from 'vscode';
 import { ChangeOperation } from '../models/ChangeOperation';
 
 export class ChangeHistory {
   private stack: ChangeOperation[] = [];
   private maxDepth: number = 50;
+  private context?: vscode.ExtensionContext;
+  private readonly STORAGE_KEY = 'reviewflow.persistedHistory';
 
-  constructor(maxDepth: number = 50) {
+  constructor(maxDepth: number = 50, context?: vscode.ExtensionContext) {
     this.maxDepth = maxDepth;
+    this.context = context;
+    if (context) {
+      const saved = context.workspaceState.get<ChangeOperation[]>(this.STORAGE_KEY);
+      if (saved && Array.isArray(saved)) {
+        this.stack = saved;
+      }
+    }
+  }
+
+  private persist(): void {
+    if (this.context) {
+      this.context.workspaceState.update(this.STORAGE_KEY, this.stack);
+    }
   }
 
   /**
@@ -16,13 +32,16 @@ export class ChangeHistory {
     if (this.stack.length > this.maxDepth) {
       this.stack.shift();
     }
+    this.persist();
   }
 
   /**
    * Pop and return the most recent operation.
    */
   public pop(): ChangeOperation | undefined {
-    return this.stack.pop();
+    const val = this.stack.pop();
+    this.persist();
+    return val;
   }
 
   /**
@@ -58,5 +77,6 @@ export class ChangeHistory {
    */
   public clear(): void {
     this.stack = [];
+    this.persist();
   }
 }

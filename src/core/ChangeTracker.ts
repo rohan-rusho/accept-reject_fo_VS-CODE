@@ -109,6 +109,10 @@ export class ChangeTracker implements vscode.Disposable {
         this.pendingGroups.set(key, []);
       }
       this.persistBaselines();
+    } else {
+      // Baseline was restored from persisted session or set!
+      // Immediately calculate diff against current live document content
+      this.recalculateDiffForDocument(document);
     }
   }
 
@@ -223,6 +227,7 @@ export class ChangeTracker implements vscode.Disposable {
     }
 
     this.pendingGroups.set(key, reconciled);
+    this.persistBaselines();
     this._onDidChangePendingChanges.fire({
       uri: document.uri,
       totalPendingCount: this.getTotalPendingCount()
@@ -341,6 +346,7 @@ export class ChangeTracker implements vscode.Disposable {
       clearTimeout(timer);
     }
     this.debounceTimers.clear();
+    this.persistBaselines();
     this._onDidChangePendingChanges.dispose();
     this.disposables.forEach((d) => d.dispose());
   }
