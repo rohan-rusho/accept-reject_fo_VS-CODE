@@ -31,9 +31,26 @@ export class ChangeManager implements vscode.Disposable {
    * If user edited the same region (OVERRIDDEN), the user's version wins and is kept.
    */
   public async acceptChange(groupId: string, uri: vscode.Uri): Promise<boolean> {
+    if (this.tracker.isGroupInFlight(groupId)) {
+      return false;
+    }
+    this.tracker.setGroupInFlight(groupId, true);
+
     const groups = this.tracker.getGroupsForUri(uri);
-    const group = groups.find((g) => g.id === groupId);
+    let group = groups.find((g) => g.id === groupId);
     if (!group) {
+      // Resilient fallback: match by start line encoded in ID or proximity
+      const parts = groupId.split('_');
+      const startLine = parseInt(parts[parts.length - 1], 10);
+      if (!isNaN(startLine)) {
+        group = groups.find((g) => Math.abs(g.startLine - startLine) <= 3);
+      }
+      if (!group && groups.length > 0) {
+        group = groups[0];
+      }
+    }
+    if (!group) {
+      this.tracker.setGroupInFlight(groupId, false);
       vscode.window.showWarningMessage('ReviewFlow: Change block no longer exists.');
       return false;
     }
@@ -62,6 +79,13 @@ export class ChangeManager implements vscode.Disposable {
       // Check if all groups are now accepted
       if (this.tracker.getGroupsForUri(uri).length === 0) {
         this.tracker.unmarkNewFile(uri);
+        const activeTab = vscode.window.tabGroups.activeTabGroup?.activeTab;
+        if (activeTab?.input instanceof vscode.TabInputTextDiff) {
+          const diffInput = activeTab.input as vscode.TabInputTextDiff;
+          if (diffInput.modified.toString() === uri.toString()) {
+            await vscode.window.showTextDocument(uri, { preview: false });
+          }
+        }
       }
 
       // Record operation in undo history
@@ -91,6 +115,7 @@ export class ChangeManager implements vscode.Disposable {
       return true;
     } finally {
       this.tracker.setApplyingReviewOperation(false);
+      this.tracker.setGroupInFlight(groupId, false);
     }
   }
 
@@ -99,9 +124,26 @@ export class ChangeManager implements vscode.Disposable {
    * If user edited the same region (OVERRIDDEN), do not overwrite user content.
    */
   public async rejectChange(groupId: string, uri: vscode.Uri): Promise<boolean> {
+    if (this.tracker.isGroupInFlight(groupId)) {
+      return false;
+    }
+    this.tracker.setGroupInFlight(groupId, true);
+
     const groups = this.tracker.getGroupsForUri(uri);
-    const group = groups.find((g) => g.id === groupId);
+    let group = groups.find((g) => g.id === groupId);
     if (!group) {
+      // Resilient fallback: match by start line encoded in ID or proximity
+      const parts = groupId.split('_');
+      const startLine = parseInt(parts[parts.length - 1], 10);
+      if (!isNaN(startLine)) {
+        group = groups.find((g) => Math.abs(g.startLine - startLine) <= 3);
+      }
+      if (!group && groups.length > 0) {
+        group = groups[0];
+      }
+    }
+    if (!group) {
+      this.tracker.setGroupInFlight(groupId, false);
       vscode.window.showWarningMessage('ReviewFlow: Change block no longer exists.');
       return false;
     }
@@ -131,6 +173,18 @@ export class ChangeManager implements vscode.Disposable {
 
       this.tracker.recalculateDiffForDocument(doc);
 
+      // Check if all groups are now resolved
+      if (this.tracker.getGroupsForUri(uri).length === 0) {
+        this.tracker.unmarkNewFile(uri);
+        const activeTab = vscode.window.tabGroups.activeTabGroup?.activeTab;
+        if (activeTab?.input instanceof vscode.TabInputTextDiff) {
+          const diffInput = activeTab.input as vscode.TabInputTextDiff;
+          if (diffInput.modified.toString() === uri.toString()) {
+            await vscode.window.showTextDocument(uri, { preview: false });
+          }
+        }
+      }
+
       // Record in history
       const op: ChangeOperation = {
         id: `op_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
@@ -158,6 +212,7 @@ export class ChangeManager implements vscode.Disposable {
       return true;
     } finally {
       this.tracker.setApplyingReviewOperation(false);
+      this.tracker.setGroupInFlight(groupId, false);
     }
   }
 

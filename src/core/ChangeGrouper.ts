@@ -52,7 +52,7 @@ export class ChangeGrouper {
       const afterContext = currLines.slice(currEnd + 1, afterEnd).join('\n');
 
       return {
-        id: `${fileUri}#${index}_${currStart}-${currEnd}_${Date.now()}`,
+        id: `${fileUri}#hunk_${origStart}_${currStart}`,
         proposalId: pId,
         fileUri,
         startLine: currStart,

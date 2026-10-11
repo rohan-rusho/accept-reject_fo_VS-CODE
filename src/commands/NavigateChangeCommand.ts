@@ -5,7 +5,7 @@ import { RangeUtils } from '../utils/RangeUtils';
 
 export async function navigateToChange(uri: vscode.Uri, group: ChangeGroup): Promise<void> {
   const doc = await vscode.workspace.openTextDocument(uri);
-  const editor = await vscode.window.showTextDocument(doc);
+  const editor = await vscode.window.showTextDocument(doc, { preview: false });
   const range = RangeUtils.createLineRange(group.startLine, group.endLine, doc);
   editor.revealRange(range, vscode.TextEditorRevealType.InCenter);
   editor.selection = new vscode.Selection(range.start, range.end);

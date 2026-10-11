@@ -17,6 +17,18 @@ export async function executeDiffPreview(
     targetUri = arg2;
   } else if (arg1 instanceof vscode.Uri) {
     targetUri = arg1;
+  } else if (typeof arg2 === 'string') {
+    try {
+      targetUri = vscode.Uri.parse(arg2);
+    } catch {
+      targetUri = undefined;
+    }
+  } else if (typeof arg1 === 'string' && (arg1.startsWith('file:') || arg1.startsWith('vscode-userdata:') || arg1.includes('#'))) {
+    try {
+      targetUri = vscode.Uri.parse(arg1.split('#')[0]);
+    } catch {
+      targetUri = undefined;
+    }
   } else {
     const editor = vscode.window.activeTextEditor;
     if (editor) {
@@ -50,6 +62,13 @@ export async function executeDiffPreview(
         // Fallback
       }
     }
+    if (diffConfig.get<boolean>('renderIndicators') !== true) {
+      try {
+        await diffConfig.update('renderIndicators', true, vscode.ConfigurationTarget.Global);
+      } catch {
+        // Fallback
+      }
+    }
   }
 
   const baselineUri = vscode.Uri.from({
@@ -59,10 +78,10 @@ export async function executeDiffPreview(
   });
 
   const fileName = path.basename(targetUri.fsPath);
-  const title = `${fileName} (Baseline 🔴 ↔ Modified 🟢)`;
+  const title = fileName;
 
   const showOptions: vscode.TextDocumentShowOptions = {
-    preview: true
+    preview: false
   };
 
   if (arg1 instanceof ChangeItemNode) {
@@ -72,6 +91,19 @@ export async function executeDiffPreview(
       arg1.group.endLine,
       0
     );
+  } else if (typeof arg1 === 'string') {
+    const rangeMatch = arg1.match(/_(\d+)-(\d+)$/);
+    if (rangeMatch) {
+      const s = parseInt(rangeMatch[1], 10);
+      const e = parseInt(rangeMatch[2], 10);
+      showOptions.selection = new vscode.Range(s, 0, e, 0);
+    } else {
+      const singleMatch = arg1.match(/_(\d+)$/);
+      if (singleMatch) {
+        const s = parseInt(singleMatch[1], 10);
+        showOptions.selection = new vscode.Range(s, 0, s, 0);
+      }
+    }
   }
 
   await vscode.commands.executeCommand('vscode.diff', baselineUri, targetUri, title, showOptions);

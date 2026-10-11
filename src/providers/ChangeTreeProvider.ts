@@ -17,6 +17,11 @@ export class FileItemNode extends vscode.TreeItem {
     this.description = `${changeCount} change${changeCount > 1 ? 's' : ''}`;
     this.tooltip = `${uri.fsPath}\n${changeCount} pending changes`;
     this.iconPath = vscode.ThemeIcon.File;
+    this.command = {
+      command: 'vscode.open',
+      title: 'Open File',
+      arguments: [uri]
+    };
   }
 }
 

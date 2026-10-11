@@ -44,8 +44,9 @@ ReviewFlow asks:
 ### 2. Independent Multi-Hunk Reviews (Accept 3, Reject 2)
 If an agent modifies 5 separated places in a single file:
 - Each hunk receives its own isolated floating controls:
-  - `[ ✅ Accept (Alt+Enter) ]`
-  - `[ ❌ Reject (Shift+Alt+Backspace) ]`
+  - `[ ⇋ Diff View ]` (Opens Unified Diff Preview)
+  - `[ ✓ ]` (Accept hunk)
+  - `[ ✕ ]` (Reject hunk)
 - You can accept 3 hunks and reject 2 hunks independently:
   - Accepting a hunk commits only that hunk to the baseline and clears its diff block.
   - Rejecting a hunk reverts only that hunk from the document without destroying the others.
@@ -70,8 +71,11 @@ Undo is not just editor `Ctrl+Z`. ReviewFlow maintains semantic multi-file trans
 - If you click **Accept All** across 4 files, **Undo** restores all 4 files back to review in one transaction.
 - Individual hunk accepts can be undone sequentially in exact reverse order ($C \to B \to A$).
 
-### 6. Activity Bar Review Card & Explorer Badges
-- Dedicated **ReviewFlow** activity bar view showing file lists with `+lines` / `-lines` badges and top-level **Accept All** / **Reject All** actions.
+### 6. Activity Bar Review Card with Pending & Reviewed Tabs
+- Dedicated **ReviewFlow** activity bar view with two tabs:
+  - **📋 Pending**: Inspect pending change blocks with Antigravity-style `[ ✕ Reject all ]` and `[ ✓ Accept all ]` buttons.
+  - **✓ Reviewed**: Review all previously accepted changes, view accepted diffs with `[ ⇋ Diff View ]`, or undo acceptance.
+- File cards dynamically expand to show all hunks without clipping.
 - File explorer status decorations marking modified (`M`) and new (`U`) files pending review.
 - Status bar summary counter with one-click access.
 
@@ -104,6 +108,7 @@ Configure ReviewFlow in your VS Code `settings.json`:
   "reviewflow.autoShowInlineDiff": true,
   "reviewflow.preferInlineDiff": true,
   "reviewflow.showInlineActions": true,
+  "reviewflow.codeLensStyle": "antigravity", // "antigravity" ([ Accept Alt+↵ ] [ Reject Shift+Alt+⌫ ]), "buttons" ([ ⇋ Diff View ] [ ✓ ] [ ✕ ]), "bracketsWithLabels", "clean", or "verbose"
   "reviewflow.showDecorations": true,
   "reviewflow.debounceMs": 300,
   "reviewflow.groupingDistance": 0,

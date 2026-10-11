@@ -34,6 +34,21 @@ export class ChangeTracker implements vscode.Disposable {
     }
   }
 
+  private inFlightGroups: Set<string> = new Set();
+
+  public isGroupInFlight(groupId: string): boolean {
+    return this.inFlightGroups.has(groupId);
+  }
+
+  public setGroupInFlight(groupId: string, inFlight: boolean): void {
+    if (inFlight) {
+      this.inFlightGroups.add(groupId);
+    } else {
+      this.inFlightGroups.delete(groupId);
+    }
+    this._onDidChangePendingChanges.fire({ totalPendingCount: this.getTotalPendingCount() });
+  }
+
   public setApplyingReviewOperation(val: boolean): void {
     this.isApplyingReviewOperation = val;
   }

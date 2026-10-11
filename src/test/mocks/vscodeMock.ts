@@ -25,6 +25,10 @@ export class Uri {
     return new Uri(schemePart || 'file', rest || val);
   }
 
+  public static from(components: { scheme: string; path: string; query?: string }): Uri {
+    return new Uri(components.scheme, components.path, components.query || '');
+  }
+
   public static file(fsPath: string): Uri {
     return new Uri('file', fsPath);
   }
@@ -55,3 +59,69 @@ export class WorkspaceEdit {
     this.insertions.push({ uri, position, text });
   }
 }
+
+export class TreeItem {
+  constructor(public label?: string, public collapsibleState?: any) {}
+}
+
+export enum TreeItemCollapsibleState {
+  None = 0,
+  Collapsed = 1,
+  Expanded = 2
+}
+
+export class ThemeIcon {
+  constructor(public readonly id: string, public readonly color?: any) {}
+  public static File = new ThemeIcon('file');
+}
+
+export class ThemeColor {
+  constructor(public readonly id: string) {}
+}
+
+
+export class CodeLens {
+  constructor(
+    public readonly range: Range,
+    public readonly command?: {
+      title: string;
+      command: string;
+      tooltip?: string;
+      arguments?: any[];
+    }
+  ) {}
+}
+
+export class EventEmitter<T = any> {
+  private listeners: ((e: T) => any)[] = [];
+  public event = (listener: (e: T) => any) => {
+    this.listeners.push(listener);
+    return { dispose: () => {} };
+  };
+  public fire(data: T): void {
+    this.listeners.forEach((l) => l(data));
+  }
+  public dispose(): void {
+    this.listeners = [];
+  }
+}
+
+export const workspace = {
+  getConfiguration: (section?: string) => ({
+    get: (key: string, defaultValue?: any) => defaultValue,
+    update: async () => {}
+  }),
+  textDocuments: [],
+  applyEdit: async () => true
+};
+
+export const window = {
+  activeTextEditor: undefined as any,
+  showInformationMessage: async () => {},
+  showWarningMessage: async () => {},
+  showErrorMessage: async () => {}
+};
+
+export const commands = {
+  executeCommand: async () => {}
+};

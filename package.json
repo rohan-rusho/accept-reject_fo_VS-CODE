@@ -12,6 +12,7 @@
   "engines": {
     "vscode": "^1.85.0"
   },
+  "icon": "resources/icon.png",
   "categories": [
     "Programming Languages",
     "Other"
@@ -166,22 +167,22 @@
       "editor/title": [
         {
           "command": "reviewflow.acceptFile",
-          "when": "resourceScheme == reviewflow-baseline || isInDiffEditor",
+          "when": "resourceScheme == reviewflow-baseline || (isInDiffEditor && (originalResourceScheme == reviewflow-baseline || resourceScheme == reviewflow-baseline))",
           "group": "navigation@1"
         },
         {
           "command": "reviewflow.rejectFile",
-          "when": "resourceScheme == reviewflow-baseline || isInDiffEditor",
+          "when": "resourceScheme == reviewflow-baseline || (isInDiffEditor && (originalResourceScheme == reviewflow-baseline || resourceScheme == reviewflow-baseline))",
           "group": "navigation@2"
         },
         {
           "command": "reviewflow.acceptChange",
-          "when": "resourceScheme == reviewflow-baseline || isInDiffEditor",
+          "when": "resourceScheme == reviewflow-baseline || (isInDiffEditor && (originalResourceScheme == reviewflow-baseline || resourceScheme == reviewflow-baseline))",
           "group": "navigation@3"
         },
         {
           "command": "reviewflow.rejectChange",
-          "when": "resourceScheme == reviewflow-baseline || isInDiffEditor",
+          "when": "resourceScheme == reviewflow-baseline || (isInDiffEditor && (originalResourceScheme == reviewflow-baseline || resourceScheme == reviewflow-baseline))",
           "group": "navigation@4"
         }
       ],
@@ -285,6 +286,34 @@
           "type": "boolean",
           "default": true,
           "description": "Show Accept / Reject CodeLens above change blocks."
+        },
+        "reviewflow.codeLensStyle": {
+          "type": "string",
+          "enum": [
+            "github",
+            "buttons",
+            "bracketsWithLabels",
+            "compact",
+            "clean",
+            "antigravity",
+            "verbose"
+          ],
+          "enumDescriptions": [
+            "Polished GitHub-style review toolbar: ⇋ Diff View | ✓ Accept | × Reject (with line counts for multi-line changes)",
+            "Bracketed buttons matching the sidebar: [ ⇋ Diff View ] | [ ✓ ] | [ ✕ ]",
+            "Bracketed buttons with labels: [ ⇋ Diff View ] | [ ✓ Accept ] | [ ✕ Reject ]",
+            "Ultra-compact icon buttons: ⇋ Diff | ✓ | ×",
+            "Clean text without brackets: ⇋ Diff View | ✓ | ✕",
+            "Antigravity pill style with keyboard shortcuts: [ Accept Alt+↵ ] | [ Reject Shift+Alt+⌫ ] | [ ⇋ Diff View ]",
+            "Legacy verbose style with line counts and permanent shortcut labels"
+          ],
+          "default": "github",
+          "description": "Style of inline Accept / Reject / Diff View review toolbar in the editor."
+        },
+        "reviewflow.showDeletionInlinePreview": {
+          "type": "boolean",
+          "default": false,
+          "description": "Show an inline badge for deleted baseline text. When false (recommended), deletions are shown cleanly in the gutter and red boundary line with rich hover diff to prevent code shifting."
         },
         "reviewflow.showSidebar": {
           "type": "boolean",

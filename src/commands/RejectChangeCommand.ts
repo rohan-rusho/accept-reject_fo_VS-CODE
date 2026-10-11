@@ -4,8 +4,8 @@ import { ChangeItemNode } from '../providers/ChangeTreeProvider';
 
 export async function executeRejectChange(
   manager: ChangeManager,
-  arg1?: string | ChangeItemNode,
-  arg2?: vscode.Uri
+  arg1?: any,
+  arg2?: any
 ): Promise<void> {
   let groupId: string | undefined;
   let uri: vscode.Uri | undefined;
@@ -13,23 +13,42 @@ export async function executeRejectChange(
   if (arg1 instanceof ChangeItemNode) {
     groupId = arg1.group.id;
     uri = arg1.uri;
-  } else if (typeof arg1 === 'string' && arg2 instanceof vscode.Uri) {
+  } else if (arg1 instanceof vscode.Uri) {
+    uri = arg1;
+    if (typeof arg2 === 'string') {
+      groupId = arg2;
+    }
+  } else if (typeof arg1 === 'string') {
     groupId = arg1;
-    uri = arg2;
-  } else {
-    // Invoked from keybinding or command palette: resolve from active editor and cursor
-    const editor = vscode.window.activeTextEditor;
-    if (!editor) {
-      vscode.window.showWarningMessage('ReviewFlow: No active editor to reject change.');
-      return;
+    if (arg2 instanceof vscode.Uri) {
+      uri = arg2;
+    } else if (typeof arg2 === 'string') {
+      uri = vscode.Uri.parse(arg2);
+    } else if (arg2 && (arg2.fsPath || arg2.path)) {
+      uri = vscode.Uri.file(arg2.fsPath || arg2.path);
     }
-    uri = editor.document.uri;
-    if (uri.scheme === 'reviewflow-baseline') {
-      uri = vscode.Uri.parse(uri.query || uri.path);
-    }
-    const currentLine = editor.selection.active.line;
-    const groups = manager.getTracker().getGroupsForUri(uri);
+  }
 
+  if (!uri) {
+    const editor = vscode.window.activeTextEditor;
+    if (editor) {
+      uri = editor.document.uri;
+    }
+  }
+
+  if (uri && uri.scheme === 'reviewflow-baseline') {
+    uri = vscode.Uri.parse(uri.query || uri.path);
+  }
+
+  if (!uri) {
+    vscode.window.showWarningMessage('ReviewFlow: No active editor to reject change.');
+    return;
+  }
+
+  const groups = manager.getTracker().getGroupsForUri(uri);
+  if (!groupId) {
+    const editor = vscode.window.activeTextEditor;
+    const currentLine = editor ? editor.selection.active.line : 0;
     const match = groups.find((g) => currentLine >= g.startLine && currentLine <= g.endLine);
     if (match) {
       groupId = match.id;

@@ -36,6 +36,9 @@ export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(
     vscode.workspace.registerTextDocumentContentProvider(ChangeDocumentProvider.SCHEME, docProvider)
   );
+  context.subscriptions.push(
+    vscode.workspace.registerTextDocumentContentProvider(ChangeDocumentProvider.SNAPSHOT_SCHEME, docProvider)
+  );
 
   // 1b. Source Control Quick Diff provider (enables native gutter diff markers and inline diff peek)
   const scm = vscode.scm.createSourceControl('reviewflow', 'ReviewFlow');
@@ -153,56 +156,9 @@ export function activate(context: vscode.ExtensionContext) {
     })
   );
 
-  let isAutoSwitching = false;
-
-  async function handleAutoShowDiff(uri: vscode.Uri): Promise<void> {
-    if (!tracker) {
-      return;
-    }
-    const config = vscode.workspace.getConfiguration('reviewflow');
-    if (!config.get<boolean>('autoShowInlineDiff', true)) {
-      return;
-    }
-    if (isAutoSwitching) {
-      return;
-    }
-
-    const groups = tracker.getGroupsForUri(uri);
-    const activeEditor = vscode.window.activeTextEditor;
-    const activeTab = vscode.window.tabGroups.activeTabGroup?.activeTab;
-    const isAlreadyDiff = activeTab?.input instanceof vscode.TabInputTextDiff;
-
-    if (groups.length > 0) {
-      // If active editor is on this file and not yet in diff editor, open unified inline diff automatically
-      if (activeEditor && activeEditor.document.uri.toString() === uri.toString() && !isAlreadyDiff) {
-        isAutoSwitching = true;
-        try {
-          await executeInlineDiffPreview(uri);
-        } finally {
-          isAutoSwitching = false;
-        }
-      }
-    } else if (groups.length === 0 && isAlreadyDiff) {
-      // All hunks in this file resolved (accepted/rejected)! Return to normal text editor seamlessly
-      const diffInput = activeTab?.input as vscode.TabInputTextDiff;
-      if (diffInput && diffInput.modified.toString() === uri.toString()) {
-        isAutoSwitching = true;
-        try {
-          await vscode.window.showTextDocument(uri, { preview: false });
-          vscode.window.setStatusBarMessage(
-            `✓ All changes reviewed in ${path.basename(uri.fsPath)}`,
-            4000
-          );
-        } finally {
-          isAutoSwitching = false;
-        }
-      }
-    }
-  }
-
-  // Live diff updates and automatic review diff presentation
+  // Live diff updates and sidebar/status refresh
   context.subscriptions.push(
-    tracker.onDidChangePendingChanges(async (e) => {
+    tracker.onDidChangePendingChanges((e) => {
       if (e.uri) {
         const baselineUri = vscode.Uri.from({
           scheme: ChangeDocumentProvider.SCHEME,
@@ -210,19 +166,9 @@ export function activate(context: vscode.ExtensionContext) {
           query: e.uri.toString()
         });
         docProvider.refresh(baselineUri);
-        await handleAutoShowDiff(e.uri);
       }
       webviewProvider.updateContent();
       statusBar.update();
-    })
-  );
-
-  // When switching between editor tabs, auto-show diff if target file has pending changes
-  context.subscriptions.push(
-    vscode.window.onDidChangeActiveTextEditor(async (editor) => {
-      if (editor && editor.document.uri.scheme === 'file') {
-        await handleAutoShowDiff(editor.document.uri);
-      }
     })
   );
 
